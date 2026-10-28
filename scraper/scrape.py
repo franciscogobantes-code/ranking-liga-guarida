@@ -173,4 +173,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException as e:  # noqa: BLE001
+        # Mensaje visible como anotación en la pestaña Actions
+        msg = str(e).replace("\n", " ")[:900]
+        print(f"::error title=Scraper::{type(e).__name__}: {msg}")
+        raise
