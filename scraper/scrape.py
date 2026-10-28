@@ -10,6 +10,7 @@ import re
 import sys
 import time
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -21,7 +22,8 @@ BASE = "https://melee.gg"
 FILTRO = "liga weekly"
 STATUS_TERMINADO = 4
 OUT = Path(__file__).resolve().parent.parent / "site" / "data.json"
-UA = "ranking-liga-guarida/1.0 (+https://github.com/)"
+UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+      "(KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
 
 MATCH_COLUMNS = [
     ("TableNumber", True, True),
@@ -48,7 +50,9 @@ def datatables_body(columns, length=500):
 
 def request(path, body=None, tries=4):
     url = BASE + path
-    headers = {"User-Agent": UA, "Accept": "application/json, text/html"}
+    headers = {"User-Agent": UA, "Accept": "application/json, text/javascript, text/html, */*; q=0.01",
+               "Accept-Language": "es-CL,es;q=0.9,en;q=0.8",
+               "Origin": BASE, "Referer": f"{BASE}/Hub/Organization/{ORG_ID}"}
     if body is not None:
         headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
         headers["X-Requested-With"] = "XMLHttpRequest"
@@ -60,6 +64,11 @@ def request(path, body=None, tries=4):
                 text = r.read().decode("utf-8")
             time.sleep(0.4)
             return text
+        except urllib.error.HTTPError as e:
+            if attempt == tries - 1:
+                cuerpo = e.read()[:300].decode("utf-8", "replace")
+                raise RuntimeError(f"Falló {url}: HTTP {e.code} {dict(e.headers).get('Server','')} | {cuerpo}") from e
+            time.sleep(2 * (attempt + 1))
         except Exception as e:  # noqa: BLE001
             if attempt == tries - 1:
                 raise RuntimeError(f"Falló {url}: {e}") from e
