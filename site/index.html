@@ -117,7 +117,7 @@ img{max-width:100%}
     <ul id="weeks"></ul>
   </section>
   <footer>
-    <p>Datos de los torneos “Liga Weekly” de La Guarida del Dragón en melee.gg, actualizados el <span id="updated">—</span>. Se actualiza solo todos los miércoles a las 22:00. Los byes cuentan como victoria. Empates en puntaje se ordenan por victorias.</p>
+    <p>Datos de los torneos “Liga Weekly” de La Guarida del Dragón en melee.gg, última actualización: <span id="updated">—</span>. Se actualiza sola todos los miércoles a las 22:00. Los byes cuentan como victoria. Empates en puntaje se ordenan por victorias.</p>
     <p>Cada weekly se asigna al mes en que se jugó (hora de Chile).</p>
   </footer>
 </main>
@@ -176,7 +176,7 @@ fetch("data.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error(r.status
   TOURNEYS=d.tournaments;TOURNEYS.forEach(t=>{t.l=local(t.date)});
   TOURNEYS.sort((a,b)=>a.date<b.date?-1:1);
   months=[...new Set(TOURNEYS.map(t=>t.l.key))];
-  document.getElementById("updated").textContent=new Date(d.updated).toLocaleString("es-CL",{timeZone:"America/Santiago",dateStyle:"long",timeStyle:"short"});
+  document.getElementById("updated").textContent=new Date(d.updated).toLocaleString("es-CL",{timeZone:"America/Santiago",dateStyle:"long",timeStyle:"short"}).replace(/\.$/,"");
   route();
 }).catch(()=>{document.getElementById("rows").innerHTML='<div class="empty">No se pudieron cargar los datos. Recarga la página en un momento.</div>'});
 </script>
