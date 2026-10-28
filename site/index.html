@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ranking mensual de la Liga Weekly de Star Wars Unlimited en La Guarida del Dragón.">
+<link rel="icon" href="logo.webp">
+<title>Ranking Liga Weekly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: parchment header band like the store, then a month rail and one ranking ledger with expandable player rows */
+:root{
+  --parch:#EFCD98;      /* store header */
+  --cream:#F7EFE3;      /* page ground */
+  --paper:#FFFBF5;      /* ledger surface */
+  --ink:#261A0A;        /* dark brown text */
+  --ink-2:#6B5640;      /* muted brown */
+  --line:#E3D3BC;
+  --leather:#7C5632;
+  --dragon:#A52A2A;     /* store accent red */
+  --dragon-ink:#FFFFFF;
+  --gold:#B8862B; --silver:#8E8A84; --bronze:#9C5B2E;
+  --win:#2F6B3A;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --parch:#3A2914; --cream:#17110A; --paper:#211910; --ink:#F2E4CC; --ink-2:#B9A386; --line:#3B2D1D;
+  --leather:#C8955E; --dragon:#D2483C; --dragon-ink:#FFFFFF; --gold:#E0AF4B; --silver:#BDB7AE; --bronze:#D08A55; --win:#7CC48A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --parch:#3A2914; --cream:#17110A; --paper:#211910; --ink:#F2E4CC; --ink-2:#B9A386; --line:#3B2D1D;
+  --leather:#C8955E; --dragon:#D2483C; --dragon-ink:#FFFFFF; --gold:#E0AF4B; --silver:#BDB7AE; --bronze:#D08A55; --win:#7CC48A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--cream);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45}
+.wrap{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--parch);border-bottom:3px solid var(--dragon)}
+header .wrap{display:flex;align-items:center;gap:18px;padding-block:18px}
+header img{width:84px;height:84px;flex:none}
+.eyebrow{font-family:var(--f-display);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--leather);margin:0}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,6vw,44px);line-height:1;margin:2px 0 6px;text-transform:uppercase;text-wrap:balance}
+.rules{margin:0;font-size:14px;color:var(--ink-2)}
+.rules b{color:var(--ink)}
+.rail{display:flex;gap:6px;overflow-x:auto;padding-block:18px 6px;scrollbar-width:thin}
+.rail button{flex:none;font:600 15px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.rail button:hover{border-color:var(--leather)}
+.rail button[aria-pressed="true"]{background:var(--dragon);border-color:var(--dragon);color:var(--dragon-ink)}
+.rail button:focus-visible,.row:focus-visible,a:focus-visible{outline:2px solid var(--dragon);outline-offset:2px}
+.rail .sep{flex:none;width:1px;background:var(--line);margin:4px 4px}
+.summary{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;padding-block:14px 10px}
+h2{font-family:var(--f-display);font-weight:700;font-size:28px;margin:0;text-transform:uppercase;letter-spacing:.02em}
+.meta{color:var(--ink-2);font-size:14px}
+.ledger{background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.head,.row{display:grid;grid-template-columns:44px minmax(0,1fr) 56px 64px 64px;align-items:center;gap:8px;padding:0 14px}
+.head{font:600 12px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding-block:12px;border-bottom:1px solid var(--line)}
+.head span:nth-child(n+3),.row .n{text-align:right}
+.row{min-height:52px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-left:0;border-right:0;border-top:0;color:inherit;font:inherit;text-align:left}
+.row:hover{background:color-mix(in srgb,var(--parch) 35%,transparent)}
+.pos{font:700 20px/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.p1 .pos{color:var(--gold)} .p2 .pos{color:var(--silver)} .p3 .pos{color:var(--bronze)}
+.name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name small{display:block;font-weight:400;font-size:12px;color:var(--ink-2)}
+.n{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.pts{font:800 22px/1 var(--f-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.p1 .pts{color:var(--dragon)}
+.detail{background:color-mix(in srgb,var(--parch) 22%,var(--paper));border-bottom:1px solid var(--line);padding:10px 14px 14px 66px}
+.detail table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.detail td{padding:5px 0;border-bottom:1px dashed var(--line)}
+.detail td:not(:first-child){text-align:right;width:70px}
+.detail tr:last-child td{border-bottom:0}
+.rec{color:var(--win);font-weight:600}
+.weeks{margin-block:28px 40px}
+h3{font:700 15px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--leather);margin:0 0 10px}
+.weeks ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.weeks a{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);text-decoration:none;font-size:14px}
+.weeks a:hover{border-color:var(--dragon)}
+.weeks a span:last-child{color:var(--ink-2);white-space:nowrap}
+footer{color:var(--ink-2);font-size:13px;padding-block:0 32px}
+footer p{margin:4px 0;max-width:65ch}
+@media (max-width:520px){
+  header img{width:64px;height:64px}
+  .head,.row{grid-template-columns:34px minmax(0,1fr) 40px 52px 48px;gap:6px;padding:0 10px}
+  .detail{padding-left:14px}
+}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+.live{font:600 11px/1 var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--dragon);border:1px solid currentColor;border-radius:4px;padding:2px 5px;margin-left:6px}
+.empty{padding:28px 14px;color:var(--ink-2);text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <img src="logo.webp" width="84" height="84" alt="La Guarida del Dragón">
+    <div>
+      <p class="eyebrow">La Guarida del Dragón · Star Wars Unlimited</p>
+      <h1>Ranking Liga Weekly</h1>
+      <p class="rules"><b>3 pts</b> por victoria · <b>1 pt</b> por asistencia</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="rail" id="rail" aria-label="Mes"></nav>
+  <div class="summary">
+    <h2 id="title">—</h2>
+    <span class="meta" id="meta"></span>
+  </div>
+  <div class="ledger" role="table" aria-label="Ranking">
+    <div class="head" role="row"><span>#</span><span>Jugador</span><span title="Weeklies jugados">Asist.</span><span title="Victorias-Derrotas">V-D</span><span>Pts</span></div>
+    <div id="rows"><div class="empty">Cargando ranking…</div></div>
+  </div>
+  <section class="weeks">
+    <h3 id="weeksTitle">Weeklies del mes</h3>
+    <ul id="weeks"></ul>
+  </section>
+  <footer>
+    <p>Datos de los torneos “Liga Weekly” de La Guarida del Dragón en melee.gg, actualizados el <span id="updated">—</span>. Se actualiza solo todos los miércoles a las 22:00. Los byes cuentan como victoria. Empates en puntaje se ordenan por victorias.</p>
+    <p>Cada weekly se asigna al mes en que se jugó (hora de Chile).</p>
+  </footer>
+</main>
+
+<script>
+let TOURNEYS = [], months = [];
+const MES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const fmtParts = new Intl.DateTimeFormat("es-CL",{timeZone:"America/Santiago",year:"numeric",month:"2-digit",day:"2-digit"});
+function local(iso){const p=Object.fromEntries(fmtParts.formatToParts(new Date(iso)).map(x=>[x.type,x.value]));return {y:+p.year,m:+p.month,d:+p.day,key:p.year+"-"+p.month};}
+const SEASON="temporada";
+
+function rank(list){
+  const P={};
+  list.forEach(t=>t.res.forEach(([u,w,l,d])=>{
+    const p=P[u]||(P[u]={u,att:0,w:0,l:0,d:0,pts:0,hist:[]});
+    p.att++;p.w+=w;p.l+=l;p.d+=d;const pts=3*w+1;p.pts+=pts;p.hist.push({t,w,l,d,pts});
+  }));
+  const arr=Object.values(P).sort((a,b)=>b.pts-a.pts||b.w-a.w||a.u.localeCompare(b.u,"es",{sensitivity:"base"}));
+  arr.forEach((p,i)=>{const prev=arr[i-1];p.pos=(prev&&prev.pts===p.pts&&prev.w===p.w)?prev.pos:i+1});
+  return arr;
+}
+function label(key){if(key===SEASON)return "Temporada 2026";const [y,m]=key.split("-");return MES[+m-1]+" "+y;}
+function shortDate(t){return String(t.l.d).padStart(2,"0")+"/"+String(t.l.m).padStart(2,"0");}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+const rail=document.getElementById("rail");
+function buildRail(active){
+  rail.innerHTML=months.map(k=>{const [,m]=k.split("-");return `<button type="button" data-k="${k}" aria-pressed="${k===active}">${MES[+m-1].slice(0,3)}</button>`}).join("")
+   +`<span class="sep"></span><button type="button" data-k="${SEASON}" aria-pressed="${active===SEASON}">Temporada</button>`;
+  rail.querySelector('[aria-pressed="true"]')?.scrollIntoView({inline:"center",block:"nearest"});
+}
+rail.addEventListener("click",e=>{const b=e.target.closest("button");if(b){location.hash=b.dataset.k;}});
+
+function render(key){
+  const list=key===SEASON?TOURNEYS:TOURNEYS.filter(t=>t.l.key===key);
+  const R=rank(list);
+  buildRail(key);
+  document.getElementById("title").textContent=label(key);
+  document.getElementById("meta").textContent=`${list.length} weekl${list.length===1?"y":"ies"} · ${R.length} jugadores`;
+  document.getElementById("rows").innerHTML=R.map((p,i)=>{
+    const cls=p.pos<=3?" p"+p.pos:"";
+    const rows=p.hist.map(h=>`<tr><td>${shortDate(h.t)} · ${esc(h.t.name.replace(/^Liga Weekly\s*-?\s*/i,""))}</td><td class="rec">${h.w}-${h.l}${h.d?"-"+h.d:""}</td><td>+${h.pts}</td></tr>`).join("");
+    return `<button type="button" class="row${cls}" aria-expanded="false" data-i="${i}"><span class="pos">${p.pos}</span><span class="name">${esc(p.u)}</span><span class="n">${p.att}</span><span class="n">${p.w}-${p.l}</span><span class="n pts">${p.pts}</span></button><div class="detail" hidden><table>${rows}</table></div>`;
+  }).join("");
+  document.getElementById("weeksTitle").textContent=key===SEASON?"Todos los weeklies":"Weeklies del mes";
+  document.getElementById("weeks").innerHTML=list.slice().reverse().map(t=>`<li><a href="https://melee.gg/Tournament/View/${t.id}" target="_blank" rel="noopener"><span>${shortDate(t)} · ${t.res.length} jugadores${t.status!==4?'<span class="live">En curso</span>':''}</span><span>Ver en Melee ↗</span></a></li>`).join("");
+}
+document.getElementById("rows").addEventListener("click",e=>{
+  const r=e.target.closest(".row");if(!r)return;
+  const d=r.nextElementSibling;const open=r.getAttribute("aria-expanded")==="true";
+  r.setAttribute("aria-expanded",String(!open));d.hidden=open;
+});
+function route(){if(!months.length)return;const h=location.hash.slice(1);render(months.includes(h)||h===SEASON?h:months[months.length-1]);}
+window.addEventListener("hashchange",route);
+fetch("data.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(d=>{
+  TOURNEYS=d.tournaments;TOURNEYS.forEach(t=>{t.l=local(t.date)});
+  TOURNEYS.sort((a,b)=>a.date<b.date?-1:1);
+  months=[...new Set(TOURNEYS.map(t=>t.l.key))];
+  document.getElementById("updated").textContent=new Date(d.updated).toLocaleString("es-CL",{timeZone:"America/Santiago",dateStyle:"long",timeStyle:"short"});
+  route();
+}).catch(()=>{document.getElementById("rows").innerHTML='<div class="empty">No se pudieron cargar los datos. Recarga la página en un momento.</div>'});
+</script>
+
+</body>
+</html>
