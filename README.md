@@ -12,7 +12,7 @@ Ranking mensual de la Liga Weekly de Star Wars Unlimited de [La Guarida del Drag
 
 ## Cómo se actualiza
 
-El flujo `.github/workflows/actualizar.yml` corre todos los miércoles a las 22:00 (hora de Chile):
+El flujo `.github/workflows/actualizar.yml` corre los miércoles a las 22:00 (hora de Chile) y repite la descarga algunas veces durante la noche y el jueves, porque GitHub a veces atrasa las tareas programadas:
 
 1. `scraper/scrape.py` descarga los torneos desde melee.gg y escribe `site/data.json`.
 2. El cambio se guarda en el repositorio.

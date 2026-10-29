@@ -1,11 +1,14 @@
 name: Actualizar ranking
 
 on:
-  # GitHub usa hora UTC. 01:00 UTC del jueves = 22:00 del miércoles en Chile con horario de verano,
-  # 02:00 UTC = 22:00 con horario de invierno. El paso "Revisar hora" deja correr solo la que cae a las 22:00.
+  # GitHub usa hora UTC y suele atrasar (o saltarse) las ejecuciones programadas.
+  # 01:00 UTC del jueves = 22:00 del miércoles en Chile (horario de verano); 02:00 UTC = 22:00 en invierno.
+  # Las corridas extra repiten la descarga por si alguna se atrasa o el weekly termina tarde.
   schedule:
     - cron: "0 1 * * 4"
     - cron: "0 2 * * 4"
+    - cron: "30 3 * * 4"
+    - cron: "0 13 * * 4"
   workflow_dispatch:
   push:
     branches: [main]
@@ -25,17 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Revisar hora
+      - name: Revisar evento
         id: gate
         run: |
-          hora=$(TZ=America/Santiago date +%H)
-          echo "Hora en Chile: $hora"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "scrape=true" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ] && [ "$hora" = "22" ]; then
-            echo "scrape=true" >> "$GITHUB_OUTPUT"
-          else
+          echo "Hora en Chile: $(TZ=America/Santiago date '+%A %H:%M')"
+          if [ "${{ github.event_name }}" = "push" ]; then
             echo "scrape=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "scrape=true" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/setup-python@v5
@@ -54,6 +54,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/data.json
           git diff --cached --quiet || git commit -m "Actualizar ranking $(TZ=America/Santiago date +%Y-%m-%d)"
+          git pull --rebase -q || true
           git push
 
       - uses: actions/configure-pages@v5
