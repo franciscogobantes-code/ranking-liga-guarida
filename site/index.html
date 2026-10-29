@@ -50,6 +50,10 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,6vw,44px);l
 .summary{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;padding-block:14px 10px}
 h2{font-family:var(--f-display);font-weight:700;font-size:28px;margin:0;text-transform:uppercase;letter-spacing:.02em}
 .meta{color:var(--ink-2);font-size:14px}
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.refresh{font:600 14px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--dragon);border:1px solid var(--dragon);border-radius:6px;padding:8px 12px;text-decoration:none}
+.refresh:hover{background:var(--dragon);color:var(--dragon-ink)}
+.status{margin:0 0 10px;padding:10px 12px;border-radius:6px;background:var(--paper);border:1px solid var(--line);font-size:14px;color:var(--ink-2)}
 .ledger{background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .head,.row{display:grid;grid-template-columns:44px minmax(0,1fr) 56px 64px 64px;align-items:center;gap:8px;padding:0 14px}
 .head{font:600 12px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding-block:12px;border-bottom:1px solid var(--line)}
@@ -106,8 +110,12 @@ img{max-width:100%}
   <nav class="rail" id="rail" aria-label="Mes"></nav>
   <div class="summary">
     <h2 id="title">—</h2>
-    <span class="meta" id="meta"></span>
+    <div class="tools">
+      <span class="meta" id="meta"></span>
+      <a class="refresh" id="refresh" href="https://github.com/franciscogobantes-code/ranking-liga-guarida/actions/workflows/actualizar.yml" target="_blank" rel="noopener" hidden>Actualizar desde Melee ↗</a>
+    </div>
   </div>
+  <p class="status" id="status" role="status" hidden></p>
   <div class="ledger" role="table" aria-label="Ranking">
     <div class="head" role="row"><span>#</span><span>Jugador</span><span title="Weeklies jugados">Asist.</span><span title="Victorias-Derrotas">V-D</span><span>Pts</span></div>
     <div id="rows"><div class="empty">Cargando ranking…</div></div>
@@ -172,13 +180,43 @@ document.getElementById("rows").addEventListener("click",e=>{
 });
 function route(){if(!months.length)return;const h=location.hash.slice(1);render(months.includes(h)||h===SEASON?h:months[months.length-1]);}
 window.addEventListener("hashchange",route);
-fetch("data.json",{cache:"no-cache"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(d=>{
-  TOURNEYS=d.tournaments;TOURNEYS.forEach(t=>{t.l=local(t.date)});
-  TOURNEYS.sort((a,b)=>a.date<b.date?-1:1);
-  months=[...new Set(TOURNEYS.map(t=>t.l.key))];
-  document.getElementById("updated").textContent=new Date(d.updated).toLocaleString("es-CL",{timeZone:"America/Santiago",dateStyle:"long",timeStyle:"short"}).replace(/\.$/,"");
-  route();
-}).catch(()=>{document.getElementById("rows").innerHTML='<div class="empty">No se pudieron cargar los datos. Recarga la página en un momento.</div>'});
+let lastUpdated=null;
+function load(){
+  return fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(d=>{
+    if(d.updated===lastUpdated)return false;
+    lastUpdated=d.updated;
+    TOURNEYS=d.tournaments;TOURNEYS.forEach(t=>{t.l=local(t.date)});
+    TOURNEYS.sort((a,b)=>a.date<b.date?-1:1);
+    months=[...new Set(TOURNEYS.map(t=>t.l.key))];
+    document.getElementById("updated").textContent=new Date(d.updated).toLocaleString("es-CL",{timeZone:"America/Santiago",dateStyle:"long",timeStyle:"short"}).replace(/\.$/,"");
+    route();
+    return true;
+  });
+}
+load().catch(()=>{document.getElementById("rows").innerHTML='<div class="empty">No se pudieron cargar los datos. Recarga la página en un momento.</div>'});
+
+// Botón de actualización: solo para el administrador. Se activa una vez abriendo la página con ?admin
+const refresh=document.getElementById("refresh"), statusEl=document.getElementById("status");
+let admin=false;
+try{
+  const q=new URLSearchParams(location.search);
+  if(q.has("admin"))localStorage.setItem("ligaAdmin",q.get("admin")==="0"?"":"1");
+  admin=!!localStorage.getItem("ligaAdmin");
+}catch(e){admin=new URLSearchParams(location.search).has("admin");}
+refresh.hidden=!admin;
+let polling=null;
+function say(t){statusEl.textContent=t;statusEl.hidden=!t;}
+refresh.addEventListener("click",()=>{
+  if(polling)return;
+  say("En GitHub, pulsa “Run workflow” y luego el botón verde. Esta página se recarga sola cuando lleguen los datos nuevos (tarda 1 a 2 minutos).");
+  const start=Date.now();
+  polling=setInterval(()=>{
+    load().then(changed=>{
+      if(changed){clearInterval(polling);polling=null;say("Listo: ranking actualizado.");setTimeout(()=>say(""),8000);}
+      else if(Date.now()-start>8*60*1000){clearInterval(polling);polling=null;say("Todavía no llegan datos nuevos. Si ya lanzaste la actualización, recarga la página en unos minutos.");}
+    }).catch(()=>{});
+  },15000);
+});
 </script>
 
 </body>

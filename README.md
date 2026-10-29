@@ -19,3 +19,9 @@ El flujo `.github/workflows/actualizar.yml` corre los miércoles a las 22:00 (ho
 3. La carpeta `site/` se publica en GitHub Pages.
 
 Para actualizar a mano: pestaña **Actions** → **Actualizar ranking** → **Run workflow**.
+
+### Botón "Actualizar desde Melee"
+
+Está oculto para los visitantes. Para verlo en tu navegador, abre la página una vez con `?admin` al final:
+`https://franciscogobantes-code.github.io/ranking-liga-guarida/?admin`
+(para ocultarlo de nuevo: `?admin=0`). El botón abre la pestaña Actions; ahí se pulsa **Run workflow** y la página se recarga sola cuando llegan los datos nuevos.
